@@ -14,30 +14,7 @@ from keras import layers, models, optimizers
 from keras.preprocessing.image import ImageDataGenerator
 
 # 代码清单5-4，将图像复制到训练、验证和测试的目录。(整理好后定义下列变量)
-
-import os
-
-origin_dataset_dir = "/home/zx/.keras/dog-cat"
-
-base_dir = os.path.join(origin_dataset_dir, "cats_and_dogs_small")
-
-train_dir = os.path.join(base_dir, "train")
-
-validation_dir = os.path.join(base_dir, "validation")
-
-test_dir = os.path.join(base_dir, "test")
-
-train_cats_dir = os.path.join(train_dir, 'cats')
-
-train_dogs_dir = os.path.join(train_dir, 'dogs')
-
-validation_cats_dir = os.path.join(validation_dir, "cats")
-
-validation_dogs_dir = os.path.join(validation_dir, "dogs")
-
-test_cats_dir = os.path.join(test_dir, 'cats')
-
-test_dogs_dir = os.path.join(test_dir, 'dogs')
+from cats_dogs_define import *
 
 #####################################################
 #
