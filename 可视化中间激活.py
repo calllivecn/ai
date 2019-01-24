@@ -80,7 +80,7 @@ for layer_name, layer_activation in zip(layer_names, activations): # 显示特�
         for row in range(images_per_row):
             channel_image = layer_activation[0, :, :, col * images_per_row + row]
             channel_image -= channel_image.mean()
-            channel_image = channel_image / channel_image.std()
+            channel_image /= (channel_image.std() + 1e-5)
             channel_image *= 64
             channel_image += 128
             channel_image = np.clip(channel_image, 0, 255).astype('uint8')
