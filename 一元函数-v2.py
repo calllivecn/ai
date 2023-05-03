@@ -53,12 +53,12 @@ def train():
     # criterion = nn.L1Loss()
 
     # def criterion(values, labels):
-        # return torch.Tensor(values - labels)
+        # return values - labels
 
     # 训练
     epoch = 0 
     epoch_count = 100
-    for epoch in range(10000):
+    for epoch in range(1000):
     # for i, x in enumerate(x_values):
     # while True:
 
@@ -70,7 +70,8 @@ def train():
         # outputs = model(x)
 
         # 计算损失
-        loss = F.mse_loss(outputs, y_values)
+        loss = criterion(outputs, y_values)
+        # loss = F.mse_loss(outputs, y_values)
 
         # 反向传播
         loss.backward()
@@ -82,11 +83,6 @@ def train():
             print("+"*20, f"epoch: {epoch}", "+"*20)
             print(f"{loss=}", f"{optimizer=}", sep=SEP, end=SEP)
             showmodel(model)
-        
-        # 当训练集准确度小于0.0001时结束训练
-        if loss <= 0.0001:
-            print(f"epoch: {epoch}, loss: {loss}")
-            break
 
         epoch += 1
     

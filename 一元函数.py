@@ -27,7 +27,7 @@ class LinearReg(nn.Module):
 
     def __init__(self, input_dim, output_dim):
         super().__init__()
-        self.linear1 = nn.Linear(input_dim, output_dim)
+        self.linear1 = nn.Linear(input_dim, output_dim, dtype=torch.float64)
         # self.linear2 = nn.Linear(2, output_dim)
     
 
@@ -37,31 +37,31 @@ class LinearReg(nn.Module):
         return out1
 
 
-# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# print(device)
-
 
 def showmodel(model):
     for name, param in model.named_parameters():
         print(f"{name} | {param.size()} | {param[:2]}")
 
 
-model = LinearReg(1,1)
 
-"""
-if device == torch.device("cuda"):
-    print("走了CUDA")
-    model.to(device)
-else:
-    print("走了CPU")
-
-"""
 SEP="\n" + "="*40 + "\n"
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def train():
 
-    x_values = torch.randint(0, 1, size=(1000, 1), dtype=torch.float32)
+    model = LinearReg(1,1)
+
+    if device == torch.device("cuda"):
+        print("走了CUDA")
+        model.to(device)
+    else:
+        print("走了CPU")
+
+    # input("回车继续")
+
+    x_values = torch.randint(0, 4, size=(10000, 1))
+    x_values = x_values.to(device, dtype=torch.float64)
     # print(x_values[:10]);exit(0)
 
     # y = x * 2 + 3
@@ -70,19 +70,21 @@ def train():
 
     learing_rate = 0.01
 
-    optimizer = torch.optim.SGD(model.parameters(), lr=learing_rate, weight_decay=0.005)
+    optimizer = torch.optim.SGD(model.parameters(), lr=learing_rate, momentum=0.9, weight_decay=0.005)
+    # optimizer = torch.optim.Adam(model.parameters(), lr=learing_rate)
     criterion = nn.MSELoss()
     # criterion = nn.L1Loss()
+    criterion.to(device)
 
     # def criterion(values, labels):
         # return torch.Tensor(values - labels)
 
     # 训练
     epoch = 0 
-    # for epoch in range(10000):
+    epoch_count = 10
+    for epoch in range(100):
     # for i, x in enumerate(x_values):
-    epoch_print = 1
-    while True:
+    # while True:
 
         # 梯度要清零
         optimizer.zero_grad()
@@ -93,8 +95,6 @@ def train():
 
         # 计算损失
         loss = criterion(outputs, y_values)
-        # if loss > 10:
-            # loss = torch.Tensor(10, grad_fn=loss.grad_fn, requires_grad=True, dtype=torch.float32)
 
         # 反向传播
         loss.backward()
@@ -102,9 +102,10 @@ def train():
         # 更新权重
         optimizer.step()
 
-        if epoch % epoch_print == 0:
+        if epoch % epoch_count == 0:
             print(f"{type(loss)=}", f"{loss=}", f"{optimizer=}", f"epoch: {epoch}", sep=SEP, end=SEP)
             showmodel(model)
+            """
             n  = input(f"可以输入数字为每epoch轮输出一次：")
             if n == "/quit":
                 sys.exit(0)
@@ -115,15 +116,15 @@ def train():
             elif isinstance(n, str):
                 try:
                     n = int(n)
-                    epoch_print = n
+                    epoch_count = n
                 except Exception:
                     pass
-
+            """
         
         # 当训练集准确度小于0.0001时结束训练
-        # if loss.item() <= 0.0001:
-            # print(f"epoch: {epoch}, loss: {loss}")
-            # break
+        if loss.item() <= 1e-6:
+            print(f"epoch: {epoch}, loss: {loss}")
+            break
 
         epoch += 1
     
@@ -134,11 +135,22 @@ def train():
     torch.save(model.state_dict(), "model.pkl")
 
 
+
 # 测试, 测试平均误差
 def valid():
 
+
+    model = LinearReg(1,1)
+
+    if device == torch.device("cuda"):
+        print("走了CUDA")
+        model.to(device)
+    else:
+        print("走了CPU")
+
     # x_valid = torch.Tensor(np.random.randint(0, 100, size=(100,1)))
-    x_valid = torch.randint(0, 100, size=(100,1), dtype=torch.float32)
+    x_valid = torch.randint(0, 100, size=(100,1))
+    x_valid = x_valid.to(device, dtype=torch.float64)
 
     y_valid = f(x_valid)
 
@@ -161,11 +173,21 @@ def valid():
     showmodel(model)
 
 
-if __name__ == "__main__":
+def main():
+    import argparse
 
-    if len(sys.argv) == 1:
-        valid()
-    elif sys.argv[1] == "train":
+    parse = argparse.ArgumentParser()
+    groups = parse.add_mutually_exclusive_group()
+    groups.add_argument("--train", action="store_true", help="训练")
+    groups.add_argument("--valid", action="store_true", help="训练")
+
+    args = parse.parse_args()
+
+    if args.train:
         train()
     else:
         valid()
+
+
+if __name__ == "__main__":
+    main()
