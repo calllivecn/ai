@@ -18,6 +18,12 @@ from torch.nn import (
     functional as F,
 )
 
+SEP="\n" + "="*40 + "\n"
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+DTYPE=torch.float32
+
+
 def f(x):
     return x * 2 + 3
 
@@ -27,7 +33,7 @@ class LinearReg(nn.Module):
 
     def __init__(self, input_dim, output_dim):
         super().__init__()
-        self.linear1 = nn.Linear(input_dim, output_dim, dtype=torch.float64)
+        self.linear1 = nn.Linear(input_dim, output_dim, dtype=DTYPE)
         # self.linear2 = nn.Linear(2, output_dim)
     
 
@@ -44,9 +50,6 @@ def showmodel(model):
 
 
 
-SEP="\n" + "="*40 + "\n"
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def train():
 
@@ -61,7 +64,7 @@ def train():
     # input("回车继续")
 
     x_values = torch.randint(0, 4, size=(10000, 1))
-    x_values = x_values.to(device, dtype=torch.float64)
+    x_values = x_values.to(device, dtype=DTYPE)
     # print(x_values[:10]);exit(0)
 
     # y = x * 2 + 3
@@ -150,7 +153,7 @@ def valid():
 
     # x_valid = torch.Tensor(np.random.randint(0, 100, size=(100,1)))
     x_valid = torch.randint(0, 100, size=(100,1))
-    x_valid = x_valid.to(device, dtype=torch.float64)
+    x_valid = x_valid.to(device, dtype=DTYPE)
 
     y_valid = f(x_valid)
 
@@ -181,7 +184,12 @@ def main():
     groups.add_argument("--train", action="store_true", help="训练")
     groups.add_argument("--valid", action="store_true", help="训练")
 
+    parse.add_argument("--parse", action="store_true", help=argparse.SUPPRESS)
     args = parse.parse_args()
+
+    if args.parse:
+        print(args)
+        sys.exit(0)
 
     if args.train:
         train()
