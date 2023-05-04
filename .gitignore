@@ -1,6 +1,9 @@
 *.h5
 *.swp
 *.png
+*.pyc
+
+*.pt
+*.pth
 *.pkl
-cats_dogs_define.cpython-36.pyc
 

@@ -45,6 +45,7 @@ class LinearReg(nn.Module):
 
 
 def showmodel(model):
+    print("="*20, "查看模型", "="*20)
     for name, param in model.named_parameters():
         print(f"{name} | {param.size()} | {param[:2]}")
 
@@ -63,17 +64,9 @@ def train():
 
     # input("回车继续")
 
-    x_values = torch.randint(0, 4, size=(10000, 1))
-    x_values = x_values.to(device, dtype=DTYPE)
-    # print(x_values[:10]);exit(0)
-
-    # y = x * 2 + 3
-    y_values = f(x_values)
-
-
     learing_rate = 0.01
 
-    optimizer = torch.optim.SGD(model.parameters(), lr=learing_rate, momentum=0.9, weight_decay=0.005)
+    optimizer = torch.optim.SGD(model.parameters(), lr=learing_rate, momentum=0.9) #, weight_decay=0.005)
     # optimizer = torch.optim.Adam(model.parameters(), lr=learing_rate)
     criterion = nn.MSELoss()
     # criterion = nn.L1Loss()
@@ -85,9 +78,18 @@ def train():
     # 训练
     epoch = 0 
     epoch_count = 10
-    for epoch in range(100):
+    # for epoch in range(100):
     # for i, x in enumerate(x_values):
-    # while True:
+    while True:
+
+        # 每次batch_size小点，效果不错。
+        x_values = torch.randint(0, 10, size=(100, 1))
+        x_values = x_values.to(device, dtype=DTYPE)
+        # print(x_values[:10]);exit(0)
+
+        # y = x * 2 + 3
+        y_values = f(x_values)
+
 
         # 梯度要清零
         optimizer.zero_grad()
@@ -106,7 +108,7 @@ def train():
         optimizer.step()
 
         if epoch % epoch_count == 0:
-            print(f"{type(loss)=}", f"{loss=}", f"{optimizer=}", f"epoch: {epoch}", sep=SEP, end=SEP)
+            print(f"{loss=} {optimizer=} {epoch=}")
             showmodel(model)
             """
             n  = input(f"可以输入数字为每epoch轮输出一次：")
