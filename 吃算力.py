@@ -23,20 +23,34 @@ from common import (
 )
 
 
-torch.set_default_dtype(torch.float16)
+
+# 需要拟合的函数
+def func1(x):
+    y = x * 2 + 3
+    return y
+
+def target_func(x, size):
+    output = torch.randn(x, size, device=DEVICE)
+    return output
 
 
 class MyData(Dataset):
 
-    def __init__(self, size, length) -> None:
+    def __init__(self, input_size, data_length) -> None:
         super().__init__()
 
-        self.len = length
-        self.data = torch.randn(length, size, device=DEVICE)
+        self.len = data_length
+        # 这样就不能指定num_works != 0 了
+        # self.data = torch.randn(length, size, device=DEVICE)
+
+        self.batchsize = 1000
+
+        self.data = torch.randn(self.batchsize, input_size, device=DEVICE)
 
 
     def __getitem__(self, index):
-        return self.data[index]
+        c, p = divmod(index, self.batchsize)
+        return self.data[p]
     
 
     def __len__(self):
@@ -56,11 +70,18 @@ class Compute(nn.Module):
             nn.Linear(input_dim, 1000),
             nn.Linear(1000, 2000),
             nn.Linear(2000, 4000),
-            # nn.Conv2d(2, 2, kernel_size=3,),
+            # nn.Conv1d(2, 2, kernel_size=3, padding=1),
             # nn.ReLU(),
             nn.Linear(4000, 2000),
-            nn.Linear(2000, output_dim),
+            nn.Linear(2000, 1000),
+            nn.Linear(1000, output_dim),
         )
+
+        """
+        self.Sequential1 = nn.Sequential(
+            nn.Linear(input_dim, output_dim)
+        )
+        """
 
 
     def forward(self, x):
@@ -70,19 +91,21 @@ class Compute(nn.Module):
 
 
 
-batch_size = 100
+input_size = 50
+output_size = 10
 
-input_size = 500
-output_size = 500
-
+batch_size = 1000
 data_size = 1000000
 
-DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+if DEVICE == "cuda":
+    torch.set_default_dtype(torch.float16)
+print("走的:", DEVICE)
 
 randn_loader = DataLoader(
     dataset=MyData(input_size, data_size),
     batch_size=batch_size,
-    # num_workers=8, # 默认：0 当前cpu数
+    # num_workers=2, # 默认：0 当前线程cpu数
     # pin_memory=True,
     # pin_memory_device=DEVICE,
     # shuffle=True,
@@ -90,7 +113,7 @@ randn_loader = DataLoader(
 
 
 model = Compute(input_size, output_size)
-model = torch.compile(model)
+# model = torch.compile(model)
 
 if torch.cuda.device_count() > 1:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -98,24 +121,39 @@ if torch.cuda.device_count() > 1:
     model = nn.DataParallel(model)
 
 model.to(DEVICE)
+print(f"{model=}")
 
 criterion = nn.MSELoss()
+# criterion = nn.L1Loss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
 criterion.to(DEVICE)
 
 i = 0
 for data in randn_loader:
     # data = data.to(DEVICE)
+    # target = func1(data)
+    target = target_func(len(data), output_size)
+
     output = model(data)
+
+    if i == 0:
+        # print(f"{data=}")
+        # print(f"{target=}")
+        print(f"{len(data)=} {len(output)=}") # 输入的数据量和输出的是一样的
+        print("Outside: input size", f"{data.size()=}", "output_size", f"{output.size()}")
+        showmodel_short(model)
+        input("回车继续")
+
     optimizer.zero_grad()
-    # print(f"{output.size()=}  {input.size()=}")
-    loss = criterion(output, data)
+    loss = criterion(output, target)
     loss.backward()
     optimizer.step()
 
-    showmodel_short(model)
     i += 1
-    print(f"epoch: {i}")
+    if i % 100 == 0:
+        print(f"epoch: {i*batch_size}")
 
+
+showmodel(model)
 
 
