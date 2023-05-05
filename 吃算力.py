@@ -91,7 +91,7 @@ class Compute(nn.Module):
 
 
 
-input_size = 50
+input_size = 100
 output_size = 10
 
 batch_size = 1000
@@ -110,7 +110,7 @@ print("走的:", DEVICE)
 randn_loader = DataLoader(
     dataset=MyData(input_size, data_size),
     batch_size=batch_size,
-    num_workers=4
+    num_workers=4,
     # pin_memory=True,
     shuffle=True,
     )
