@@ -40,12 +40,12 @@ class MyData(Dataset):
         super().__init__()
 
         self.len = data_length
-        # 这样就不能指定num_works != 0 了
-        # self.data = torch.randn(length, size, device=DEVICE)
 
         self.batchsize = 1000
 
-        self.data = torch.randn(self.batchsize, input_size, device=DEVICE)
+        # 这样就不能指定num_works != 0 了
+        # self.data = torch.randn(length, size, device=DEVICE)
+        self.data = torch.randn(self.batchsize, input_size)
 
 
     def __getitem__(self, index):
@@ -98,17 +98,21 @@ batch_size = 1000
 data_size = 1000000
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-if DEVICE == "cuda":
+if DEVICE == torch.device("cuda"):
     torch.set_default_dtype(torch.float16)
+
+elif DEVICE == torch.device("cpu"):
+    print(f"设置 cpu 线程, pytorch 默认使用cpu * 1/2")
+    # torch.set_num_threads(3)
+
 print("走的:", DEVICE)
 
 randn_loader = DataLoader(
     dataset=MyData(input_size, data_size),
     batch_size=batch_size,
-    # num_workers=2, # 默认：0 当前线程cpu数
+    num_workers=4
     # pin_memory=True,
-    # pin_memory_device=DEVICE,
-    # shuffle=True,
+    shuffle=True,
     )
 
 
@@ -130,7 +134,7 @@ criterion.to(DEVICE)
 
 i = 0
 for data in randn_loader:
-    # data = data.to(DEVICE)
+    data = data.to(DEVICE)
     # target = func1(data)
     target = target_func(len(data), output_size)
 
