@@ -12,7 +12,9 @@ from torch import (
 
 from torch.utils.data import (
     Dataset,
+    IterableDataset,
     DataLoader,
+    Sampler,
 )
 
 
@@ -52,13 +54,34 @@ class MyData(Dataset):
         c, p = divmod(index, self.batchsize)
         return self.data[p]
     
-
     def __len__(self):
         return self.len
     
 
     def parallel(self):
         pass
+
+
+class MyDataIter(IterableDataset):
+
+    def __init__(self, input_size, data_length) -> None:
+        super().__init__()
+
+        self.len = data_length
+
+        self.batchsize = 150
+
+        # 这样就不能指定num_works != 0 了
+        # self.data = torch.randn(self.batchsize, input_size, device=DEVICE)
+
+        # iter dataset 好像是一次返回
+        self.data = torch.randn(input_size)
+
+
+    def __iter__(self):
+        for i in range(self.len):
+            yield self.data
+
 
 
 class Compute(nn.Module):
@@ -94,7 +117,7 @@ class Compute(nn.Module):
 input_size = 100
 output_size = 10
 
-batch_size = 1000
+batch_size = 200
 data_size = 1000000
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -108,11 +131,12 @@ elif DEVICE == torch.device("cpu"):
 print("走的:", DEVICE)
 
 randn_loader = DataLoader(
-    dataset=MyData(input_size, data_size),
+    # dataset=MyData(input_size, data_size),
+    dataset=MyDataIter(input_size, data_size),
     batch_size=batch_size,
-    num_workers=4,
+    # num_workers=4,
     # pin_memory=True,
-    shuffle=True,
+    # shuffle=True,
     )
 
 
@@ -144,7 +168,7 @@ for data in randn_loader:
         # print(f"{data=}")
         # print(f"{target=}")
         print(f"{len(data)=} {len(output)=}") # 输入的数据量和输出的是一样的
-        print("Outside: input size", f"{data.size()=}", "output_size", f"{output.size()}")
+        print("Outside: input size", f"{data.size()=}", "output_size", f"{output.size()}", "y", f"{target.size()=}")
         showmodel_short(model)
         input("回车继续")
 
