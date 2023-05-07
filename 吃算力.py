@@ -118,7 +118,7 @@ input_size = 100
 output_size = 10
 
 batch_size = 200
-data_size = 1000000
+data_size = 100000
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 if DEVICE == torch.device("cuda"):
@@ -134,8 +134,8 @@ randn_loader = DataLoader(
     # dataset=MyData(input_size, data_size),
     dataset=MyDataIter(input_size, data_size),
     batch_size=batch_size,
-    # num_workers=4,
-    # pin_memory=True,
+    num_workers=8,
+    pin_memory=True,
     # shuffle=True,
     )
 
