@@ -3,6 +3,8 @@
 # date 2023-05-05 09:06:54
 # author calllivecn <c-all@qq.com>
 
+import sys
+
 import torch
 
 from torch import (
@@ -16,6 +18,14 @@ from torch.utils.data import (
     DataLoader,
     Sampler,
 )
+
+# from torch.profiler import profile, record_function, ProfilerActivity
+
+"""
+with profile(activities=[ProfilerActivity.CPU], record_shapes=True) as prof:
+    with record_function("model_inference"):
+        model(inputs)
+"""
 
 
 # import common
@@ -70,17 +80,19 @@ class MyDataIter(IterableDataset):
         self.len = data_length
 
         self.batchsize = 150
+        self.input_size = input_size
 
         # 这样就不能指定num_works != 0 了
         # self.data = torch.randn(self.batchsize, input_size, device=DEVICE)
 
         # iter dataset 好像是一次返回
-        self.data = torch.randn(input_size)
+        # self.data = torch.randn(input_size)
 
 
     def __iter__(self):
         for i in range(self.len):
-            yield self.data
+            # yield self.data
+            yield torch.randn(self.input_size)
 
 
 
@@ -120,6 +132,17 @@ output_size = 10
 batch_size = 200
 data_size = 100000
 
+try:
+    batch_size = int(sys.argv[1])
+except Exception:
+    pass
+
+try:
+    data_size = int(sys.argv[2])
+except Exception:
+    pass
+
+
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 if DEVICE == torch.device("cuda"):
     torch.set_default_dtype(torch.float16)
@@ -156,6 +179,10 @@ criterion = nn.MSELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
 criterion.to(DEVICE)
 
+# prof = profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True)
+# prof.start()
+
+
 i = 0
 for data in randn_loader:
     data = data.to(DEVICE)
@@ -170,7 +197,7 @@ for data in randn_loader:
         print(f"{len(data)=} {len(output)=}") # 输入的数据量和输出的是一样的
         print("Outside: input size", f"{data.size()=}", "output_size", f"{output.size()}", "y", f"{target.size()=}")
         showmodel_short(model)
-        input("回车继续")
+        # input("回车继续")
 
     optimizer.zero_grad()
     loss = criterion(output, target)
@@ -184,4 +211,25 @@ for data in randn_loader:
 
 showmodel(model)
 
+"""
+cpu_time_total
+cpu_time_total/1000
+cuda_time_total
+cuda_time_total/1000
+cpu_memory_usage
+cuda_memory_usage
+self_cpu_memory_usage
+self_cuda_memory_usage
+count
+"""
+
+"""
+prof.stop()
+print("="*20, "self_cpu_memory_usage:", "="*20)
+print(prof.key_averages().table(sort_by="self_cpu_memory_usage", row_limit=10))
+print("="*20, "cpu_time_total", "="*20)
+print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=10))
+print("="*20, "cuda_time_total:", "="*20)
+print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=10))
+"""
 
