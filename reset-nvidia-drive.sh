@@ -1,6 +1,6 @@
 #!/bin/bash
 # date 2023-05-06 09:07:17
-# author calllivecn <c-all@qq.com>
+# author calllivecn <calllivecn@outlook.com>
 
 # 需要 先关闭所有在使用cuda的进程。可以使用nvidia-smi 来查看。
 

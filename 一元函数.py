@@ -1,7 +1,7 @@
 #!/usr/bin/env py3
 #coding=utf-8
 # date 2023-05-02 17:51:55
-# author calllivecn <c-all@qq.com>
+# author calllivecn <calllivecn@outlook.com>
 
 
 import sys

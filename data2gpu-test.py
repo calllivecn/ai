@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # coding=utf-8
 # date 2023-05-06 10:14:57
-# author calllivecn <c-all@qq.com>
+# author calllivecn <calllivecn@outlook.com>
 
 # 测试 把数据移动GPU的性能消耗。
 

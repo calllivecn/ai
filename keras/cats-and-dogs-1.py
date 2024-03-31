@@ -1,7 +1,7 @@
 #!/usr/bin/env py3
 #coding=utf-8
 # date 2019-01-22 22:52:55
-# author calllivecn <c-all@qq.com>
+# author calllivecn <calllivecn@outlook.com>
 
 """
 dogs_vs_cats = https://www.kaggle.com/c/dogs-vs-cats/data  下载数据(需要kaggle账号)
