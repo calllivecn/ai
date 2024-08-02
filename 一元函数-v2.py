@@ -9,6 +9,7 @@ import sys
 import torch
 from torch import (
     nn,
+    profiler,
 )
 from torch.nn import (
     functional as F,
@@ -96,6 +97,17 @@ def train():
 # 测试, 测试平均误差
 def valid():
 
+    import pprint
+
+    profile = profiler.profile(
+        schedule=profiler.schedule(wait=0, warmup=1, active=1, repeat=1),
+        # on_trace_ready=profiler.tensorboard_trace_handler('/tmp/trace_prof'),
+        record_shapes=True,
+        profile_memory=True,
+        with_stack=True,
+        )
+
+    profile.start()
     # x_valid = torch.Tensor(np.random.randint(0, 100, size=(100,1)))
     x_valid = torch.randint(0, 100, size=(100,1), dtype=torch.float32)
 
@@ -104,9 +116,13 @@ def valid():
     # 加载模型
     model.load_state_dict(torch.load("model.pkl"))
 
+    profiler.record_function("model 推理")
     with torch.no_grad():
         y_ = model(x_valid)
 
+    profile.stop()
+    profile.export_memory_timeline("/tmp/prof/memory_timeline.json")
+    profile.export_chrome_trace("/tmp/prof/chrome.json")
 
     # 求平均误差
     res = torch.abs(y_ - y_valid)
@@ -121,7 +137,6 @@ def valid():
 
 
 if __name__ == "__main__":
-
     if len(sys.argv) == 1:
         valid()
     elif sys.argv[1] == "train":
